@@ -7,6 +7,85 @@ const sendEmail = require("../utils/sendEmail");
 require('dotenv').config();
 const userRouter = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *  name: User
+ *  description: All the end points related to user.
+ */
+
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *      User:
+ *          type: object
+ *          properties:
+ *              id:
+ *                type: string
+ *                description: It is auth generated id of ther user
+ *              name:
+ *                type: string
+ *                description: user name
+ *              email:
+ *                type: string
+ *                description: user email
+ *              pass:
+ *                type: string
+ *                description: user password 
+ */
+
+
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Register a new user
+ *     tags:
+ *       - User
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *             required:
+ *               - name
+ *               - email
+ *               - pass
+ *     responses:
+ *       200:
+ *         description: The new user has been registered"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                 registeredUser:
+ *                   $ref: '#/components/schemas/User'
+ *                 issue:
+ *                   type: boolean
+ *       400:
+ *         description: Bad request or user registration issue
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 issue:
+ *                   type: boolean
+ */
 
 userRouter.post("/register", async (req, res) => {
 
@@ -35,12 +114,55 @@ userRouter.post("/register", async (req, res) => {
         }
 
     }
-
-
-
 })
 
-
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Log in a user
+ *     tags:
+ *       - User
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *             required:
+ *               - email
+ *               - pass
+ *     responses:
+ *       200:
+ *         description: Successfully logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 issue:
+ *                   type: boolean
+ *       400:
+ *         description: Bad request or login issue
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 issue:
+ *                   type: boolean
+ */
 userRouter.post("/login", async (req, res) => {
     const { pass, email } = req.body;
     if (!pass || !email) {
@@ -72,6 +194,51 @@ userRouter.post("/login", async (req, res) => {
 })
 
 // send mail for forgot password
+
+/**
+ * @swagger
+ * /forgot:
+ *   post:
+ *     summary: Initiate password reset for a user
+ *     tags:
+ *       - User
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *             required:
+ *               - email
+ *     responses:
+ *       200:
+ *         description: Password reset initiated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 issue:
+ *                   type: boolean
+ *                 msg:
+ *                   type: string
+ *                 resetToken:
+ *                   type: string
+ *       400:
+ *         description: Bad request or user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+
+
 userRouter.post("/forgot", async (req, res) => {
     const { email } = req.body;
     if (!email) {
@@ -101,6 +268,51 @@ userRouter.post("/forgot", async (req, res) => {
 
 })
 
+
+/**
+ * @swagger
+ * /resetpassword/{token}:
+ *   post:
+ *     summary: Reset user password using a reset token
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The reset token sent to the user's email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *             required:
+ *               - pass
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Bad request or user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+
+
 userRouter.post("/resetpassword/:token", async (req, res) => {
     const { pass, } = req.body;
     const { token } = req.params;
@@ -123,6 +335,43 @@ userRouter.post("/resetpassword/:token", async (req, res) => {
     }
 
 })
+
+/**
+ * @swagger
+ * /logout:
+ *   get:
+ *     summary: Log out a user and invalidate the provided token
+ *     tags:
+ *       - User
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User has been successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *       400:
+ *         description: Bad request or an error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *     securitySchemes:
+ *       BearerAuth:
+ *         type: http
+ *         scheme: bearer
+ *         bearerFormat: JWT
+ */
+
+
 userRouter.get("/logout", async (req, res) => {
     const token = req.headers.auth;
     try {
